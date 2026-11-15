@@ -384,15 +384,20 @@ function calc(r){
 let PROFILE={name:'',address:'',phone:'',email:'',logo:''};
 async function loadProfile(){try{const d=await db.doc('t/'+ME.tid+'/catalog/profile').get();PROFILE=d.exists?{...PROFILE,...await dec(await catKey(),d.data().enc)}:{name:'',address:'',phone:'',email:'',logo:''}}catch(e){}}
 async function saveProfile(p){await db.doc('t/'+ME.tid+'/catalog/profile').set({enc:await enc(await catKey(),p)});PROFILE=p}
-function pdfHeader(doc,title,sub,extra){const sf=doc.internal.scaleFactor,u=v=>v/sf,W=doc.internal.pageSize.getWidth()*sf,L=40,top=34;let x=L;
- if(PROFILE.logo){try{const f=/^data:image\/png/.test(PROFILE.logo)?'PNG':'JPEG';doc.addImage(PROFILE.logo,f,u(L),u(top),u(54),u(54));x=L+68}catch(e){}}
- doc.setTextColor(20,22,31);doc.setFont('helvetica','bold');doc.setFontSize(17);doc.text(PROFILE.name||'Store Manager',u(x),u(top+16));
- doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(90,95,110);let yy=top+31;
- const addr=String(PROFILE.address||'').split(/\n/).map(s=>s.trim()).filter(Boolean).join(', ');if(addr){doc.text(doc.splitTextToSize(addr,u(W/2-x+20)),u(x),u(yy));yy+=12*Math.min(2,doc.splitTextToSize(addr,u(W/2-x+20)).length)}
- const ct=[PROFILE.phone,PROFILE.email].filter(Boolean).join('   |   ');if(ct){doc.text(ct,u(x),u(yy));yy+=12}
- doc.setTextColor(20,22,31);doc.setFont('helvetica','bold');doc.setFontSize(14);doc.text(title,u(W-L),u(top+16),{align:'right'});
- doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(90,95,110);if(sub)doc.text(sub,u(W-L),u(top+31),{align:'right'});if(extra)doc.text(extra,u(W-L),u(top+43),{align:'right'});
- const ly=Math.max(yy,top+58)+6;doc.setDrawColor(79,70,229);doc.setLineWidth(u(1.6));doc.line(u(L),u(ly),u(W-L),u(ly));doc.setTextColor(20,22,31);return u(ly+16)}
+function pdfHeader(doc,title,sub,extra){const sf=doc.internal.scaleFactor,u=v=>v/sf,W=doc.internal.pageSize.getWidth()*sf,L=40,R=W-40,top=30,cx=W/2,colW=(W-80)*0.30,midW=(W-80)*0.36;
+ doc.setFillColor(79,70,229);doc.rect(0,0,u(W),u(6),'F');
+ let cy=top;if(PROFILE.logo){try{const f=/^data:image\/png/.test(PROFILE.logo)?'PNG':'JPEG';doc.addImage(PROFILE.logo,f,u(cx-30),u(cy),u(60),u(60));cy+=68}catch(e){}}
+ doc.setFont('helvetica','bold');doc.setFontSize(16);doc.setTextColor(20,22,31);const nm=doc.splitTextToSize(String(PROFILE.name||'Store Manager').toUpperCase(),u(midW));nm.slice(0,3).forEach((l,i)=>doc.text(l,u(cx),u(cy+14+i*18),{align:'center'}));cy+=14+Math.min(3,nm.length)*18;
+ const lab=(t,x,y,al)=>{doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(79,70,229);doc.text(t,u(x),u(y),{align:al})};
+ const val=(lines,x,y,al)=>{doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.setTextColor(40,44,58);lines.forEach((l,i)=>doc.text(l,u(x),u(y+i*12.5),{align:al}));return y+lines.length*12.5};
+ let ly=top+18;if(PROFILE.phone){lab('PHONE',L,ly,'left');ly=val(doc.splitTextToSize(PROFILE.phone,u(colW)),L,ly+12,'left')+6}
+ if(PROFILE.email){lab('EMAIL',L,ly,'left');ly=val(doc.splitTextToSize(PROFILE.email,u(colW)),L,ly+12,'left')+6}
+ let ry=top+18;const ad=String(PROFILE.address||'').split(/\n/).map(x=>x.trim()).filter(Boolean);if(ad.length){lab('ADDRESS',R,ry,'right');let al=[];ad.forEach(x=>al=al.concat(doc.splitTextToSize(x,u(colW))));ry=val(al.slice(0,4),R,ry+12,'right')+6}
+ let y=Math.max(cy,ly,ry)+8;doc.setDrawColor(79,70,229);doc.setLineWidth(u(1.4));doc.line(u(L),u(y),u(R),u(y));doc.setDrawColor(210,213,225);doc.setLineWidth(u(.5));doc.line(u(L),u(y+3),u(R),u(y+3));
+ y+=14;const bh=extra?42:30;doc.setFillColor(244,245,250);doc.rect(u(L),u(y),u(R-L),u(bh),'F');doc.setFillColor(79,70,229);doc.rect(u(L),u(y),u(3),u(bh),'F');
+ doc.setFont('helvetica','bold');doc.setFontSize(13);doc.setTextColor(20,22,31);doc.text(String(title).toUpperCase(),u(L+12),u(y+19));
+ doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(90,95,110);if(sub)doc.text(String(sub),u(R-10),u(y+19),{align:'right'});if(extra)doc.text(String(extra),u(R-10),u(y+33),{align:'right'});
+ doc.setTextColor(20,22,31);return u(y+bh+14)}
 function pdfFooter(doc){const sf=doc.internal.scaleFactor,u=v=>v/sf,W=doc.internal.pageSize.getWidth()*sf,H=doc.internal.pageSize.getHeight()*sf,n=doc.getNumberOfPages(),now=new Date().toLocaleString('en-US');
  for(let i=1;i<=n;i++){doc.setPage(i);doc.setDrawColor(225,227,235);doc.setLineWidth(u(.6));doc.line(u(40),u(H-34),u(W-40),u(H-34));doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(140,144,160);
   doc.text((PROFILE.name||'Store Manager')+'  ·  '+'Generated '+now,u(40),u(H-22));doc.text('Page '+i+' / '+n,u(W-40),u(H-22),{align:'right'})}}
@@ -1110,17 +1115,24 @@ function doExport(kind,rows,date,coName){
  if(kind==='txt'){navigator.clipboard.writeText(orderText(rows,d)).then(()=>toast(t('copied')),()=>toast('Copy not allowed'));return}
  if(kind==='share'){shareText(orderText(rows,d));return}
  const head=['Company','Product','Qty'],body=rows.map(r=>[r.company,r.product,r.qty]);
- if(kind==='img'){const W=1080,P=56,rowH=64,F='Inter, "Segoe UI", Roboto, "Noto Sans", "Noto Sans Arabic", "Noto Sans Bengali", sans-serif';const gs=groups(rows);
-  const H=P+150+gs.reduce((a,g)=>a+86+g.rows.length*rowH+24,0)+110;const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');
-  x.fillStyle='#f3f4f8';x.fillRect(0,0,W,H);x.fillStyle='#151827';x.fillRect(0,0,W,150);
-  x.fillStyle='#ffffff';x.font='800 46px '+F;x.textBaseline='middle';x.fillText(HOST.profile().name||'Store Manager',P,62);x.font='500 28px '+F;x.fillStyle='#c9ccd8';x.fillText(t('orderOn')+' · '+d+(coName?' · '+coName:''),P,112);
-  const tot=rows.reduce((a,r)=>a+r.qty,0);x.textAlign='right';x.fillStyle='#ffffff';x.font='800 52px '+F;x.fillText(String(tot),W-P,70);x.font='500 24px '+F;x.fillStyle='#c9ccd8';x.fillText(t('boxes'),W-P,116);x.textAlign='left';
+ if(kind==='img'){(async()=>{const PR=HOST.profile(),LG=await (async()=>{if(!PR.logo)return null;const i=new Image();i.src=PR.logo;try{await i.decode();return i}catch(e){return null}})(),HH=LG?400:320;const W=1080,P=56,rowH=64,F='Inter, "Segoe UI", Roboto, "Noto Sans", "Noto Sans Arabic", "Noto Sans Bengali", sans-serif';const gs=groups(rows);
+  const H=P+HH+gs.reduce((a,g)=>a+86+g.rows.length*rowH+24,0)+110;const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');
+  x.fillStyle='#f3f4f8';x.fillRect(0,0,W,H);x.fillStyle='#ffffff';x.fillRect(0,0,W,HH);x.fillStyle='#4f46e5';x.fillRect(0,0,W,10);x.textBaseline='middle';
+  const tot=rows.reduce((a,r)=>a+r.qty,0),cx=W/2,cw=300;let cy=40;if(LG){const s2=110,r=Math.min(s2/LG.width,s2/LG.height);x.drawImage(LG,cx-LG.width*r/2,cy,LG.width*r,LG.height*r);cy+=124}
+  const fitw=(s,max)=>{s=String(s);if(x.measureText(s).width<=max)return s;while(s.length>1&&x.measureText(s+'…').width>max)s=s.slice(0,-1);return s+'…'};
+  x.textAlign='center';x.fillStyle='#14161f';x.font='800 30px '+F;{const ws=String(PR.name||'Store Manager').toUpperCase().split(' '),ls=[];let cur='';ws.forEach(w=>{const tt=cur?cur+' '+w:w;if(x.measureText(tt).width>440&&cur){ls.push(cur);cur=w}else cur=tt});ls.push(cur);ls.slice(0,2).forEach((l,i)=>x.fillText(fitw(l,440),cx,cy+24+i*40))}
+  const lab=(tx,xx,yy,al)=>{x.textAlign=al;x.fillStyle='#4f46e5';x.font='800 17px '+F;x.fillText(tx,xx,yy)},val=(tx,xx,yy,al)=>{x.textAlign=al;x.fillStyle='#2a2e3c';x.font='500 23px '+F;x.fillText(fitw(tx,cw-20),xx,yy)};
+  let ly=58;if(PR.phone){lab('PHONE',P,ly,'left');val(PR.phone,P,ly+28,'left');ly+=70}if(PR.email){lab('EMAIL',P,ly,'left');val(PR.email,P,ly+28,'left')}
+  const ad=String(PR.address||'').split(/\n/).map(v=>v.trim()).filter(Boolean);if(ad.length){lab('ADDRESS',W-P,58,'right');ad.slice(0,4).forEach((l,i)=>val(l,W-P,86+i*30,'right'))}
+  const by=HH-78;x.fillStyle='#4f46e5';x.fillRect(P-16,by-14,W-2*P+32,4);x.fillStyle='#f4f5fa';x.fillRect(P-16,by,W-2*P+32,64);x.fillStyle='#4f46e5';x.fillRect(P-16,by,6,64);
+  x.textAlign='left';x.fillStyle='#14161f';x.font='800 28px '+F;x.fillText(t('orderOn').toUpperCase(),P+6,by+32);x.textAlign='right';x.font='600 24px '+F;x.fillStyle='#5d6274';x.fillText(d+(coName?' · '+coName:'')+' · '+tot+' qty',W-P,by+32);x.textAlign='left';
   const fit=(s,max)=>{if(x.measureText(s).width<=max)return s;while(s.length>1&&x.measureText(s+'…').width>max)s=s.slice(0,-1);return s+'…'};
-  let y=150+P;for(const g of gs){const h2=86+g.rows.length*rowH;x.fillStyle='#ffffff';x.beginPath();x.roundRect(P-16,y,W-2*P+32,h2,22);x.fill();
-   x.fillStyle='#217346';x.beginPath();x.roundRect(P-16,y,W-2*P+32,74,[22,22,0,0]);x.fill();x.fillStyle='#ffffff';x.font='700 32px '+F;x.fillText(fit(g.company,W-2*P-140),P+8,y+38);
+  let y=HH+P-20;for(const g of gs){const h2=86+g.rows.length*rowH;x.fillStyle='#ffffff';x.beginPath();x.roundRect(P-16,y,W-2*P+32,h2,22);x.fill();
+   x.fillStyle='#21253a';x.beginPath();x.roundRect(P-16,y,W-2*P+32,74,[22,22,0,0]);x.fill();x.fillStyle='#ffffff';x.font='700 32px '+F;x.fillText(fit(g.company,W-2*P-140),P+8,y+38);
    x.textAlign='right';x.font='800 32px '+F;x.fillText(String(g.rows.reduce((a,r)=>a+r.qty,0)),W-P-8,y+38);x.textAlign='left';
-   let ry=y+74;g.rows.forEach((r,i)=>{if(i){x.fillStyle='#e6e8ee';x.fillRect(P,ry,W-2*P,2)}x.fillStyle='#14161f';x.font='500 30px '+F;x.fillText(fit(r.product,W-2*P-150),P+8,ry+rowH/2+4);
-    x.textAlign='right';x.font='800 34px '+F;x.fillText(String(r.qty),W-P-8,ry+rowH/2+4);x.textAlign='left';ry+=rowH});y+=h2+24}
+   let ry=y+74;g.rows.forEach((r,i)=>{if(i){x.fillStyle='#e6e8ee';x.fillRect(P,ry,W-2*P,2)}x.fillStyle='#e6e8ee';x.fillRect(P+84,ry+8,2,rowH-16);x.fillRect(W-P-84,ry+8,2,rowH-16);
+    x.textAlign='center';x.fillStyle='#14161f';x.font='800 34px '+F;x.fillText(String(r.qty),P+38,ry+rowH/2+4);x.textAlign='left';x.font='500 30px '+F;x.fillText(fit(r.product,W-2*P-210),P+104,ry+rowH/2+4);
+    x.strokeStyle='#5d6274';x.lineWidth=3;x.beginPath();x.roundRect(W-P-58,ry+rowH/2-16,32,32,5);x.stroke();ry+=rowH});y+=h2+24}
   x.fillStyle='#151827';x.beginPath();x.roundRect(P-16,y,W-2*P+32,84,22);x.fill();x.fillStyle='#ffffff';x.font='700 32px '+F;x.fillText(t('total')+' · '+rows.length+' '+t('products').toLowerCase(),P+8,y+44);
   x.textAlign='right';x.font='800 40px '+F;x.fillText(String(tot),W-P-8,y+44);x.textAlign='left';
   cv.toBlob(blob=>{const f=new File([blob],name+'.png',{type:'image/png'}),url=URL.createObjectURL(blob),canShare=!!(navigator.canShare&&navigator.canShare({files:[f]})),canCopy=!!(navigator.clipboard&&window.ClipboardItem);
@@ -1129,7 +1141,7 @@ function doExport(kind,rows,date,coName){
     <p class="note">${t('picHint')}</p>`);
    sh.querySelector('#ps1').onclick=()=>download(blob,name+'.png');
    const c2=sh.querySelector('#ps2');if(c2)c2.onclick=async()=>{try{await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);toast(t('picCopied'))}catch(e){toast(t('picNoCopy'))}};
-   const c3=sh.querySelector('#ps3');if(c3)c3.onclick=async()=>{try{await navigator.share({files:[f],title:name})}catch(e){}}},'image/png');return}
+   const c3=sh.querySelector('#ps3');if(c3)c3.onclick=async()=>{try{await navigator.share({files:[f],title:name})}catch(e){}}},'image/png')})();return}
  if(kind==='xlsx'){if(!window.XLSX){toast(t('libFail'));return}const wb=XLSX.utils.book_new();
   const ws=XLSX.utils.aoa_to_sheet([...HOST.xlsxHead('Purchase order',d),head,...body,[],['','Total',rows.reduce((a,r)=>a+r.qty,0)]]);ws['!cols']=[{wch:28},{wch:44},{wch:8}];XLSX.utils.book_append_sheet(wb,ws,'Order');
   for(const g of groups(rows)){const w=XLSX.utils.aoa_to_sheet([[g.company,d],[],head.slice(1),...g.rows.map(r=>[r.product,r.qty]),[],['Total',g.rows.reduce((a,r)=>a+r.qty,0)]]);w['!cols']=[{wch:44},{wch:8}];
@@ -1139,13 +1151,16 @@ function doExport(kind,rows,date,coName){
   const doc=new J({unit:'pt',format:'a4'}),W=doc.internal.pageSize.getWidth();
   let y=HOST.pdfHeader(doc,'Purchase order',d+(coName?'  ·  '+coName:''),rows.length+' products  ·  total quantity '+unitSum(rows,true));
 doc.setTextColor(20);
-  for(const g of groups(rows)){
-   doc.autoTable({startY:y,head:[[{content:g.company+'   ('+unitSum(g.rows,true)+' qty)',colSpan:2,styles:{halign:'left',fillColor:[33,115,70],fontSize:11}}],['Product','Qty']],
-    body:g.rows.map(r=>[r.product,r.qty]),
-    styles:{fontSize:10,cellPadding:5},headStyles:{fillColor:[238,240,246],textColor:20},columnStyles:{1:{halign:'right',fontStyle:'bold'}},alternateRowStyles:{fillColor:[250,250,252]},margin:{left:40,right:40,top:40,bottom:50}});
+  const tq=rows.reduce((a,r)=>a+r.qty,0);
+  for(const g of groups(rows)){const gq=g.rows.reduce((a,r)=>a+r.qty,0);
+   doc.autoTable({startY:y,theme:'grid',head:[[{content:g.company,colSpan:3,styles:{halign:'center',fillColor:[33,37,58],textColor:255,fontSize:11.5}}],[{content:'QTY',styles:{halign:'center'}},'PRODUCT',{content:'CHECK',styles:{halign:'center'}}]],
+    body:g.rows.map(r=>[r.qty,r.product,'']),foot:[[{content:String(gq),styles:{halign:'center'}},'Total','']],
+    didDrawCell:dc=>{if(dc.section==='body'&&dc.column.index===2){const z=11,c=dc.cell;doc.setDrawColor(90,95,110);doc.setLineWidth(1);doc.rect(c.x+c.width/2-z/2,c.y+c.height/2-z/2,z,z,'S')}},
+    styles:{fontSize:10.5,cellPadding:{top:5,bottom:5,left:8,right:8},lineColor:[200,204,216],lineWidth:.6,textColor:[20,22,31]},headStyles:{fillColor:[236,238,247],textColor:[60,64,80],fontSize:8.5,fontStyle:'bold'},
+    footStyles:{fillColor:[236,238,247],textColor:[20,22,31],fontStyle:'bold'},columnStyles:{0:{cellWidth:56,halign:'center',fontStyle:'bold'},2:{cellWidth:60}},alternateRowStyles:{fillColor:[250,250,253]},margin:{left:40,right:40,top:40,bottom:50}});
    y=doc.lastAutoTable.finalY+16}
-  if(y>doc.internal.pageSize.getHeight()-60){doc.addPage();y=60}
-  doc.setFont('helvetica','bold');doc.setFontSize(12);doc.text('Total quantity: '+unitSum(rows,true),40,y+6);
+  if(groups(rows).length>1){if(y>doc.internal.pageSize.getHeight()-80){doc.addPage();y=60}
+   doc.setFillColor(33,37,58);doc.rect(40,y,W-80,28,'F');doc.setTextColor(255);doc.setFont('helvetica','bold');doc.setFontSize(11.5);doc.text('TOTAL ORDERS',52,y+18.5);doc.text(String(tq),W-52,y+18.5,{align:'right'});doc.setTextColor(20)}
   HOST.pdfFooter(doc);
   download(new Blob([doc.output('arraybuffer')],{type:'application/pdf'}),name+'.pdf')}
 }
