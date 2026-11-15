@@ -189,6 +189,14 @@ main.dali .pr.has{background:var(--goodbg)}
 main.dali .pp{border:1px dashed var(--line);background:none;border-radius:8px;padding:2px 8px;font-size:.78em;color:var(--muted);margin-top:4px;font-weight:600}
 main.dali .pp.set{border-style:solid;color:var(--text)}
 main.dali .lc{font-size:.8em;color:var(--good);font-weight:700}
+main.dali .xr{grid-template-columns:26px minmax(0,1fr) auto!important;min-width:0!important}
+main.dali textarea.xc-name{resize:none;overflow:hidden;white-space:normal;word-break:break-word;line-height:1.25;font-family:inherit;font-size:.9em;padding:8px 6px;min-height:0;display:block;width:100%;box-sizing:border-box}
+main.dali .xn{min-height:44px!important;font-size:.7em!important}
+main.dali .mini{margin:4px 5px!important;border-radius:8px}
+main.dali .mini button{width:28px!important;height:32px!important;font-size:17px!important}
+main.dali .mini input{width:30px!important;font-size:.95em!important;padding:4px 0!important}
+main.dali .xh>div{padding:6px!important}
+main.dali .xl-grid{overflow-x:hidden}
 main.dali .step{display:flex;align-items:center;border:1.5px solid var(--line);border-radius:14px;overflow:hidden;flex:0 0 auto;background:var(--card)}
 main.dali .step button{border:none;border-radius:0;width:46px;height:50px;padding:0;font-size:24px;font-weight:700;background:var(--soft)}
 main.dali .step button.pl{background:var(--accent);color:#fff}
@@ -984,7 +992,7 @@ function company(cid,tab){
  <div id="below"></div><input type="file" id="lgf" accept="image/*" hidden>`);
  let s='';
  const unitSel=p=>{const u=unitOf(p,ORDER.lines[p.id]);return `<select class="us" data-k="unit">${UNITS.map(x=>`<option value="${x}"${x===u?' selected':''}>${esc(uT(x))}</option>`).join('')}</select>`};
- const cell=(p,k,ph,mode)=>`<input class="xc xc-${k}" dir="auto" data-k="${k}" value="${esc(k==='price'?(p.price??''):p[k]||'')}" placeholder="${esc(ph)}"${mode?` inputmode="${mode}"`:''}>`;
+ const cell=(p,k,ph,mode)=>k==='name'?`<textarea class="xc xc-name" rows="1" dir="auto" data-k="name" placeholder="${esc(ph)}">${esc(p.name||'')}</textarea>`:`<input class="xc xc-${k}" dir="auto" data-k="${k}" value="${esc(k==='price'?(p.price??''):p[k]||'')}" placeholder="${esc(ph)}"${mode?` inputmode="${mode}"`:''}>`;
  const drawAll=()=>{const f=s.trim().toLowerCase();
   const head=`<div class="xr xh"><div class="xn">⠿</div><div>A · ${t('product')}</div><div class="r">B · ${t('boxes')}</div></div>`;
   const rows=c.products.map((p,i)=>{if(f&&!(p.name+' '+p.size).toLowerCase().includes(f))return'';const v=ORDER.lines[p.id]?.qty||0;
@@ -1051,7 +1059,8 @@ function company(cid,tab){
   if(k==='unit'){p.unit=e.target.value;if(ORDER.lines[pid]){ORDER.lines[pid].unit=p.unit;saveOrder();updBar()}if(tab==='ord'){saveSoon();drawOrd();return}}else p[k]=e.target.value.trim();
   saveSoon();updTabs();$('.hero p').textContent=catName(c.cat)+' · '+c.products.filter(x=>(x.name||'').trim()).length+' '+t('products').toLowerCase()});
  G.addEventListener('focusin',e=>{if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT'){if(e.target.select)e.target.select();const r=e.target.closest('.xr');document.querySelectorAll('.xr.sel').forEach(x=>x.classList.remove('sel'));if(r)r.classList.add('sel')}});
- G.addEventListener('keydown',e=>{if(e.key!=='Enter'||e.target.tagName!=='INPUT')return;e.preventDefault();
+ const fitN=()=>G.querySelectorAll('textarea.xc-name').forEach(x=>{x.style.height='auto';x.style.height=x.scrollHeight+'px'});new MutationObserver(()=>requestAnimationFrame(fitN)).observe(G,{childList:true});G.addEventListener('input',e=>{if(e.target.matches('textarea.xc-name')){e.target.style.height='auto';e.target.style.height=e.target.scrollHeight+'px'}});
+ G.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.tagName==='TEXTAREA'){e.preventDefault();e.target.blur();return}if(e.key!=='Enter'||e.target.tagName!=='INPUT')return;e.preventDefault();
   const ins=[...G.querySelectorAll('input')],k=e.target.dataset.k||'q',same=ins.filter(x=>(x.dataset.k||'q')===k),i=same.indexOf(e.target);if(same[i+1])same[i+1].focus();else e.target.blur()});
  const pick=()=>$('#lgf').click();
  $('#lgb').onclick=()=>{const sh=sheet(`<h4>🖼 ${t('logo')}</h4><button class="mi" id="l1"><span>📷</span>${t('logoChange')}</button>${c.logo?`<button class="mi" id="l2"><span>🌐</span>${t('logoReset')}</button>`:''}`);
