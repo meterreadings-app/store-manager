@@ -959,7 +959,7 @@ async function loadAll(){
  {const v3=await store.get('meta/catalog');if(!v3||v3.v<3){for(const c of COS.filter(c=>c.example&&JSON.stringify((c.products||[]).map(p=>p.name))===JSON.stringify(EXAMPLE.products)))await store.del('companies/'+c.id);COS=COS.filter(c=>!(c.example&&JSON.stringify((c.products||[]).map(p=>p.name))===JSON.stringify(EXAMPLE.products)));await store.set('meta/catalog',{v:3})}}
 
  COS.forEach(c=>c.products=c.products||[]);sortCos();
- ORDER=(await store.get('meta/order'))||{lines:{},started:null};ORDER.lines=ORDER.lines||{};
+ ORDER=(await store.get('meta/order'))||{lines:{},started:null};ORDER.lines=ORDER.lines||{};{const ids=new Set();COS.forEach(c=>(c.products||[]).forEach(p=>ids.add(p.id)));let ch=false;Object.keys(ORDER.lines).forEach(k=>{if(!ids.has(k)){delete ORDER.lines[k];ch=true}});if(ch){if(!Object.keys(ORDER.lines).length)ORDER.started=null;await store.set('meta/order',ORDER)}}
  try{HIST=(await store.list('history')).sort((a,b)=>b.date.localeCompare(a.date))}catch(e){HIST=[]}
 }
 const sortCos=()=>COS.sort((a,b)=>a.name.replace(/^The /,'').localeCompare(b.name.replace(/^The /,''),undefined,{sensitivity:'base'}));
@@ -1246,7 +1246,7 @@ function settings(){
 }
 
 
-return {async mount(host){HOST=host;LANG=host.lang();app.classList.add('dali');app.innerHTML=`<p class="note">${t('loading')}</p>`;try{await loadAll()}catch(e){app.innerHTML='<div class="card"><b>Error</b><p class="note">'+esc(e.code||e.message)+'</p></div>';return}go('home')},unmount(){app.classList.remove('dali');document.querySelectorAll('.sheet').forEach(s=>s.remove())},totals(){return totals()},async peek(host){HOST=host;try{const o=await store.get('meta/order');const L=Object.values((o||{}).lines||{}).filter(l=>l.qty>0);return{items:L.length,qty:L.reduce((a,l)=>a+l.qty,0)}}catch(e){return{items:0,qty:0}}}};
+return {async mount(host){HOST=host;LANG=host.lang();app.classList.add('dali');app.innerHTML=`<p class="note">${t('loading')}</p>`;try{await loadAll()}catch(e){app.innerHTML='<div class="card"><b>Error</b><p class="note">'+esc(e.code||e.message)+'</p></div>';return}go('home')},unmount(){app.classList.remove('dali');document.querySelectorAll('.sheet').forEach(s=>s.remove())},totals(){return totals()},async peek(host){HOST=host;try{const o=await store.get('meta/order'),cs=await store.list('companies'),ids=new Set();cs.filter(c=>!(c.example&&JSON.stringify((c.products||[]).map(p=>p.name))===JSON.stringify(EXAMPLE.products))).forEach(c=>(c.products||[]).forEach(p=>ids.add(p.id)));const L=Object.entries((o||{}).lines||{}).filter(([k,l])=>ids.has(k)&&l.qty>0).map(([,l])=>l);return{items:L.length,qty:L.reduce((a,l)=>a+l.qty,0)}}catch(e){return{items:0,qty:0}}}};
 })();
 
 boot().catch(e=>{app.innerHTML='<p class="note flag">Error: '+esc(e&&(e.message||e.code)||e)+'</p>'});
