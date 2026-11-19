@@ -372,6 +372,7 @@ Object.entries({"en": {"phName": "Your business name", "phAddr": "Street and num
 Object.entries({"en": {"accB": "Give access to another business", "accBn": "For another shop. It gets its OWN account: its own business details, logo, meter readings and daily orders. Nothing is shared with you.", "accW": "Add a worker to my shop", "accWn": "For staff in THIS shop. Workers use your shop's details, meter readings and daily orders. They cannot change the business details."}, "ar": {"accB": "إعطاء صلاحية لنشاط آخر", "accBn": "لمحل آخر. يحصل على حساب خاص به: بياناته وشعاره وقراءاته وطلباته. لا يُشارك شيء معك.", "accW": "إضافة عامل إلى محلي", "accWn": "لموظفي هذا المحل. يستخدم العمال بيانات محلك وقراءاته وطلباته، ولا يمكنهم تعديل بيانات النشاط."}, "fr": {"accB": "Donner accès à une autre entreprise", "accBn": "Pour un autre magasin : son propre compte, ses propres informations et données.", "accW": "Ajouter un employé à mon magasin", "accWn": "Pour le personnel de CE magasin : utilise vos informations et données."}, "es": {"accB": "Dar acceso a otro negocio", "accBn": "Para otra tienda: su propia cuenta, datos y pedidos.", "accW": "Agregar un trabajador a mi tienda", "accWn": "Para el personal de ESTA tienda: usa sus datos y pedidos."}, "ur": {"accB": "دوسرے کاروبار کو رسائی دیں", "accBn": "دوسری دکان کے لیے: اس کا اپنا اکاؤنٹ، اپنی تفصیلات اور ڈیٹا۔", "accW": "اپنی دکان میں ملازم شامل کریں", "accWn": "اسی دکان کے عملے کے لیے: آپ کی تفصیلات اور ڈیٹا استعمال کرتے ہیں۔"}, "hi": {"accB": "दूसरे व्यवसाय को एक्सेस दें", "accBn": "दूसरी दुकान के लिए: उसका अपना खाता, अपने विवरण और डेटा।", "accW": "मेरी दुकान में कर्मचारी जोड़ें", "accWn": "इसी दुकान के स्टाफ़ के लिए: आपके विवरण और डेटा उपयोग करते हैं।"}, "zh": {"accB": "给其他商家开通访问", "accBn": "用于另一家店：拥有自己的账户、商家信息和数据。", "accW": "为我的店添加员工", "accWn": "用于本店员工：使用本店的信息和数据。"}}).forEach(([l,o])=>{T[l]=Object.assign(T[l]||{},o)});
 Object.entries({"en": {"workedBy": "Worked by", "workedByPh": "Name of who works this shift"}, "ar": {"workedBy": "يعمل في الوردية", "workedByPh": "اسم من يعمل في هذه الوردية"}, "fr": {"workedBy": "Travaillé par", "workedByPh": "Nom de la personne"}, "es": {"workedBy": "Trabajado por", "workedByPh": "Nombre de quien trabaja"}, "ur": {"workedBy": "کام کرنے والا", "workedByPh": "اس شفٹ میں کام کرنے والے کا نام"}, "hi": {"workedBy": "किसने काम किया", "workedByPh": "इस शिफ्ट में काम करने वाले का नाम"}, "zh": {"workedBy": "值班人", "workedByPh": "本班次工作人员姓名"}}).forEach(([l,o])=>{T[l]=Object.assign(T[l]||{},o)});
 Object.entries({"en": {"notGame": "Price not in Games — choose a price from the list"}, "ar": {"notGame": "السعر غير موجود في الألعاب — اختر سعرًا من القائمة"}, "fr": {"notGame": "Prix absent des jeux — choisissez dans la liste"}, "es": {"notGame": "Precio no está en Juegos — elija de la lista"}, "ur": {"notGame": "قیمت گیمز میں نہیں — فہرست سے منتخب کریں"}, "hi": {"notGame": "कीमत गेम्स में नहीं — सूची से चुनें"}, "zh": {"notGame": "价格不在游戏列表中——请从列表选择"}}).forEach(([l,o])=>{T[l]=Object.assign(T[l]||{},o)});
+Object.entries({"en": {"cpPick": "Copy from which shift?"}, "ar": {"cpPick": "النسخ من أي وردية؟"}, "fr": {"cpPick": "Copier depuis quelle équipe ?"}, "es": {"cpPick": "¿Copiar de qué turno?"}, "ur": {"cpPick": "کس شفٹ سے کاپی کریں؟"}, "hi": {"cpPick": "किस शिफ्ट से कॉपी करें?"}, "zh": {"cpPick": "从哪个班次复制？"}}).forEach(([l,o])=>{T[l]=Object.assign(T[l]||{},o)});
 let LANG='en';try{const l=localStorage.getItem('mr:lang');if(T[l])LANG=l}catch(e){}
 const t=k=>(T[LANG]&&T[LANG][k])??T.en[k]??k;
 const applyLang=()=>{document.documentElement.lang=LANG;document.documentElement.dir=RTL.includes(LANG)?'rtl':'ltr'};
@@ -597,7 +598,9 @@ function showWarn(rows,cap){
  if(ok.length>=4){const s=ok.map(x=>x.v).sort((a,b)=>a-b),m=s[Math.floor(s.length/2)];if(m>0)ok.forEach(x=>{if(x.v>3*m)w.push(t('wHigh').replace('{a}',x.i+1))});
   const top=Object.keys(pc).sort((a,b)=>pc[b]-pc[a])[0];if(pc[top]>=ok.length*0.6)ok.forEach(x=>{if(x.p!==top)w.push(t('wPrice').replace('{a}',x.i+1))})}
  el.innerHTML=w.slice(0,6).map(x=>'⚠ '+esc(x)).join('<br>')}
-async function dayAt(d){const sn=await db.collection('t/'+ME.tid+'/days').where('u','==',uid).get();let best=null;sn.docs.forEach(z=>{const x=z.data();if(x.d===d&&(!best||SHI(x.s)>=SHI(best.s)))best=x});if(!best)return null;return{d,s:best.s||'m',...await dec(await myKey(),best.enc)}}
+async function dayShifts(d){const sn=await db.collection('t/'+ME.tid+'/days').where('u','==',uid).get(),o=[];sn.docs.forEach(z=>{const x=z.data();if(x.d===d)o.push({s:x.s||'m',enc:x.enc})});return o.sort((a,b)=>SHI(a.s)-SHI(b.s))}
+async function dayAt(d,sid){if(sid){const sn=await db.collection('t/'+ME.tid+'/days').where('u','==',uid).get();let f=null;sn.docs.forEach(z=>{const x=z.data();if(x.d===d&&(x.s||'m')===sid)f=x});if(!f)return null;return{d,s:sid,...await dec(await myKey(),f.enc)}}
+ const sn=await db.collection('t/'+ME.tid+'/days').where('u','==',uid).get();let best=null;sn.docs.forEach(z=>{const x=z.data();if(x.d===d&&(!best||SHI(x.s)>=SHI(best.s)))best=x});if(!best)return null;return{d,s:best.s||'m',...await dec(await myKey(),best.enc)}}
 async function prevDay(date,sid){const sn=await db.collection('t/'+ME.tid+'/days').where('u','==',uid).get(),key=x=>x.d+'|'+String(SHI(x.s)).padStart(3,'0'),cur=date+'|'+String(SHI(sid)).padStart(3,'0');let best=null;sn.docs.forEach(d=>{const x=d.data();if(key(x)<cur&&(!best||key(x)>key(best)))best=x});if(!best)return null;try{return{d:best.d,s:best.s||'m',...await dec(await myKey(),best.enc)}}catch(e){return null}}
 const GAME='game';
 const nr=()=>({g:'',n:GAME,c:'',p:'',b:'',e:''});
@@ -659,15 +662,20 @@ function home(){
    if(ch.length)await db.doc('t/'+ME.tid+'/audit/'+Date.now()+'-'+Math.random().toString(36).slice(2,6)).set({u:uid,d:date,l:LABEL(),ts:Date.now(),enc:await enc(k,{by:ME.email||'',ch})});
    prev=keep.map(r=>({p:r.p,b:r.b,e:r.e}));$('#st').textContent=t('saved')}catch(e){$('#st').textContent=t('notSaved')+(e.message||e.code)}}
  function changed(){upd();if(!ready||LOCK())return;$('#st').textContent=t('saving');clearTimeout(tm);window.__flush=doSave;tm=setTimeout(doSave,700)}
- async function copyPrev(src){
-  let pv=null;try{pv=src?await dayAt(src):await prevDay(date,shift)}catch(e){}
+ async function copyPrev(src,sid){
+  let pv=null;try{pv=src?await dayAt(src,sid):await prevDay(date,shift)}catch(e){}
   if(!pv||!pv.rows.length){$('#st').textContent=src?t('noDay')+' '+src:t('noPrev');return}
   const nrw=pv.rows.map(r=>({...cp(r),g:'',n:GAME,c:'',b:blank(r.e)?'':String(r.e),e:'',src:pv.d}));
   const mine=rows.filter(r=>!r.src&&!(blank(r.p)&&blank(r.b)&&blank(r.e)));
   rows=nrw.concat(mine);if(!rows.length)rows=[nr()];build();changed();$('#st').textContent=t('copiedFrom')+' '+pv.d+(pv.s?' · '+SHN(pv.s):'')}
  $('#cpy').onclick=()=>copyPrev();
  const cpdt=$('#cpdt');$('#cpd').onclick=()=>{cpdt.max=date;cpdt.value='';try{cpdt.showPicker()}catch(e){cpdt.style.cssText='width:auto;margin-top:6px';cpdt.focus()}};
- cpdt.onchange=()=>{const v=cpdt.value;if(!v)return;if(v===date){$('#st').textContent=t('noDay')+' '+v;return}copyPrev(v)};
+ cpdt.onchange=async()=>{const v=cpdt.value;if(!v)return;if(v===date&&SH().length<2){$('#st').textContent=t('noDay')+' '+v;return}
+  let av=[];try{av=await dayShifts(v)}catch(e){}if(v===date)av=av.filter(z=>z.s!==shift);
+  if(!av.length){$('#st').textContent=t('noDay')+' '+v;return}
+  if(av.length===1||SH().length<2){copyPrev(v,av[av.length-1].s);return}
+  const sh=document.createElement('div');sh.className='sheet';document.body.appendChild(sh);sh.innerHTML=`<div><h4>📅 ${esc(v)}</h4><p class="note" style="margin-top:0">${t('cpPick')}</p>${av.map(z=>`<button class="p" data-cs="${esc(z.s)}" style="width:100%;margin-top:8px;min-height:48px">🕒 ${esc(SHN(z.s))}</button>`).join('')}</div>`;
+  sh.onclick=e=>{const b=e.target.closest('[data-cs]');if(b){const sid=b.dataset.cs;sh.remove();copyPrev(v,sid)}else if(e.target===sh)sh.remove()}};
  $('#rs').oninput=e=>{const d=e.target.dataset;if(d.k&&d.k!=='g'&&d.k!=='n'){rows[d.i][d.k]=e.target.value;changed()}};
  $('#rs').onchange=e=>{const d=e.target.dataset;if(d.k==='g'){const r=rows[d.i],g=CAT.games.find(x=>x.id===e.target.value);r.g=e.target.value;if(g){r.n=g.name;r.c=g.size;r.p=String(g.price);if(blank(r.b)&&last[g.id]!==undefined)r.b=String(last[g.id])}else{r.n='';r.c=''}build();changed()}};
  $('#rs').onclick=e=>{const d=e.target.dataset.d;if(d!==undefined&&!LOCK()){rows.splice(d,1);if(!rows.length)rows.push(nr());build();changed()}};
